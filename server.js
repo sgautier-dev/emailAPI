@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json()); //parse incoming data as JSON 
 
 app.use(cors({
-    origin: ['http://localhost:4200', 'https://your-server-domain.com'],
+    origin: ['http://localhost:4200', 'https://www.sgautier.dev/'],
     methods: ['POST'],
     allowedHeaders: ['Content-Type']
 }));
