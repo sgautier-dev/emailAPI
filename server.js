@@ -37,6 +37,7 @@ app.post('/sendEmail', (req, res) => {
     const mailOptions = {
         from: process.env.EMAIL_FROM,
         to: process.env.EMAIL_FROM,
+        replyTo: email,
         subject: 'New message from SGautier portfolio website',
         text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`
     };
