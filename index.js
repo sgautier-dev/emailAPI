@@ -1,34 +1,55 @@
+require('dotenv').config();
 const express = require('express');
 const nodemailer = require('nodemailer');
-const bodyParser = require('body-parser');
+const cors = require('cors');
 
 const app = express();
-app.use(bodyParser.json());
+
+app.use(express.json()); //parse incoming data as JSON 
+
+app.use(cors({
+    origin: ['http://localhost:4200', 'https://your-server-domain.com'],
+    methods: ['POST'],
+    allowedHeaders: ['Content-Type']
+}));
+
+if (!process.env.EMAIL_SERVICE || !process.env.EMAIL_PORT || !process.env.SENDGRID_API_KEY || !process.env.EMAIL_FROM) {
+    console.error('Missing environment variables. Please check if all required environment variables are set.');
+    process.exit(1);
+}
 
 const transporter = nodemailer.createTransport({
-service: 'gmail',
-auth: {
-user: 'sgautier.dev@gmail.com',
-pass: '<YOUR_GMAIL_PASSWORD>'
-}
-});
-
-app.post('/sendemail', (req, res) => {
-const { name, email, message } = req.body;
-const mailOptions = {
-from: 'sgautier.dev@gmail.com',
-to: email,
-subject: 'New message from your portfolio website',
-text: Name: ${name}\nEmail: ${email}\nMessage: ${message}
-};
-transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-        return res.status(500).json({ message: error.message });
+    host: process.env.EMAIL_SERVICE,
+    port: process.env.EMAIL_PORT,
+    auth: {
+        user: 'apikey',
+        pass: process.env.SENDGRID_API_KEY,
     }
-    return res.status(200).json({ message: 'Email sent successfully' });
 });
 
-const PORT = process.env.PORT || 5000;
+app.post('/sendEmail', (req, res) => {
+    //console.log(req.body)
+    const { name, email, message } = req.body;
+    if (!name || !email || !message) {
+        res.status(400).send({ error: "All fields are required" });
+        return;
+    }
+    const mailOptions = {
+        from: process.env.EMAIL_FROM,
+        to: process.env.EMAIL_FROM,
+        subject: 'New message from SGautier portfolio website',
+        text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`
+    };
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            return res.status(500).json({ message: error.message });
+        }
+        return res.status(200).json({ message: 'Email sent successfully' });
+    });
+
+})
+
+const PORT = process.env.PORT || 3500;
 app.listen(PORT, () => {
-console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
